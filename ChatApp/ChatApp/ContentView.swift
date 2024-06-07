@@ -1,20 +1,16 @@
 import SwiftUI
-import FirebaseStorage
 import PhotosUI
-import Firebase
-import FirebaseFirestore
 
 struct ContentView: View {
-    @State var key = false
-    @State var mail = ""
-    @State var password = ""
+    
+    let didComleteLoginProcess: () -> ()
+    
+    @State private var key = true
+    @State private var mail = ""
+    @State private var password = ""
     
     @State private var selectedItem: PhotosPickerItem? = nil
     @State private var selectedImageData: Data? = nil
-    
-    init () {
-        FirebaseApp.configure()
-    }
     
     var body: some View {
         NavigationView {
@@ -87,7 +83,13 @@ struct ContentView: View {
     }
     
     private func createNewAccount() {
-        Auth.auth().createUser(withEmail: mail, password: password) {
+        
+        if self.selectedImageData == nil {
+            print("Выбирите фото")
+            return
+        }
+        
+        FirebaseManager.shared.auth.createUser(withEmail: mail, password: password) {
             result, error in
             if let err = error {
                 print("Failed to create user(", err)
@@ -100,20 +102,21 @@ struct ContentView: View {
     }
     
     private func loginUser() {
-        Auth.auth().signIn(withEmail: mail, password: password) {
+        FirebaseManager.shared.auth.signIn(withEmail: mail, password: password) {
             result, error in
             if let err = error {
                 print("Failed to sign In user(", err)
                 return
             }
             
+            self.didComleteLoginProcess()
             print("Successfully sign In!")
         }
     }
     
     private func persistImageToStorage() {
-        guard let uid = Auth.auth().currentUser?.uid else { return }
-        let ref = Storage.storage().reference(withPath: uid)
+        guard let uid = FirebaseManager.shared.auth.currentUser?.uid else { return }
+        let ref = FirebaseManager.shared.storage.reference(withPath: uid)
         if selectedImageData == nil { return }
         guard let imageData = selectedImageData else { return }
         ref.putData(imageData, metadata: nil) {
@@ -138,9 +141,9 @@ struct ContentView: View {
     }
     
     private func storeUserInformation(imageProfileUrl: URL) {
-        guard let uid = Auth.auth().currentUser?.uid else { return }
+        guard let uid = FirebaseManager.shared.auth.currentUser?.uid else { return }
         let userData = ["uid": uid, "email": self.mail, "profileImageUrl": imageProfileUrl.absoluteString]
-        Firestore.firestore().collection("users")
+        FirebaseManager.shared.firestore.collection("users")
             .document(uid).setData(userData) { err in
                 if let err = err {
                     print(err)
@@ -148,10 +151,13 @@ struct ContentView: View {
                 }
                 
                 print("seccuss")
+                self.didComleteLoginProcess()
             }
     }
 }
 
 #Preview {
-    ContentView()
+    ContentView(didComleteLoginProcess: {
+        
+    })
 }
