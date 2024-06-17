@@ -2,6 +2,7 @@ import FirebaseStorage
 import FirebaseFirestore
 import Firebase
 
+// Менеджер Firebase (Singleton) для взаимодействия с Firebase
 class FirebaseManager: NSObject {
     
     let auth: Auth

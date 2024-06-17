@@ -1,20 +1,17 @@
 import Foundation
 
 struct ChatUser: Identifiable {
-    
     var id: String { uid }
-    
-    let uid, email, profileImageUrl: String
-    
-    init(data: [String: Any]) {
-        self.uid = data["uid"] as? String ?? ""
-        self.email = data["email"] as? String ?? ""
-        self.profileImageUrl = data["profileImageUrl"] as? String ?? ""
+    // Характеристики пользователя
+    let uid, email, profileImageUrl, publicKey: String
+    // Получение имени без @
+    var username: String {
+        email.components(separatedBy: "@").first ?? email
     }
-    
-    init(uid: String, email: String, profileImageUrl: String) {
-        self.uid = uid
-        self.email = email
-        self.profileImageUrl = profileImageUrl
+    init(data: [String: Any]) {
+        self.uid = data[FirebaseConstants.uid] as? String ?? ""
+        self.email = data[FirebaseConstants.email] as? String ?? ""
+        self.profileImageUrl = data[FirebaseConstants.profileImageUrl] as? String ?? ""
+        self.publicKey = data[FirebaseConstants.publicKey] as? String ?? ""
     }
 }
